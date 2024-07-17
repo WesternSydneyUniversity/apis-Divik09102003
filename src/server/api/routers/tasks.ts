@@ -1,20 +1,43 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
-import { db } from "~/server/db";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+
+// Sample in-memory data store for tasks
 
 export const tasksRouter = createTRPCRouter({
-  tasks: publicProcedure.query(async ({ ctx, input }) => {
-    const tasks = await db.task.findMany();
-    return tasks;
+  tasks: protectedProcedure.query(async ({ ctx }) => {
+    return await ctx.db.task.findMany({
+      where : { userId: ctx.session.user.id },
+    });
   }),
-  addTask: publicProcedure
-    .input(z.object({ task: z.string() }))
+
+  addTask: protectedProcedure
+    .input(z.object({ description: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      // TODO
+
+      const newTask = 
+        await ctx.db.task.create({data: {userId: ctx.session.user.id,
+        description: input.description,
+        completed: false
+      },
+    });
+    return newTask;
     }),
-  toggleTaskCompletion: publicProcedure
-    // .input(/* TODO */)
+
+  changeTask: protectedProcedure
+    .input(z.object({ id: z.number(), description: z.string(), completed: z.boolean() }))
     .mutation(async ({ ctx, input }) => {
-      // TODO
-    })
+      const updatedTask = await ctx.db.task.update({
+          where: { id: input.id },
+          data: { description: input.description, completed: input.completed }
+        });
+      return updatedTask;
+    }),
+
+  deleteTask: protectedProcedure
+    .input(z.object({ id: z.number() }))
+    .mutation(async ({ ctx, input }) => {
+      const deletedTask = await ctx.db.task.delete({ where: { id: input.id }, 
+      });
+      return deletedTask;
+    }),
 });
