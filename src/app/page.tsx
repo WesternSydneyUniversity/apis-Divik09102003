@@ -1,6 +1,6 @@
 import { TaskList } from "~/components/task-list";
 import styles from "./index.module.css";
-
+import { Suspense } from "react";
 import { Stick_No_Bills } from "next/font/google";
 import { UserInfo } from "~/components/user-info";
 
@@ -21,8 +21,10 @@ export default async function Home() {
             The easiest way to control your time!
           </h2>
         </header>
-        <TaskList />
+        <Suspense fallback={<div>Loading posts...</div>}>
+          <TaskList />
+        </Suspense>
       </div>
     </main>
-  );
+  )
 }

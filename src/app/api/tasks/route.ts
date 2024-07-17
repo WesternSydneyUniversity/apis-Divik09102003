@@ -3,12 +3,7 @@ import { getServerAuthSession } from "~/server/auth";
 
 // In-memory data store for tasks
 const tasks = [
-  {
-    userId: "1",
-    id: 1,
-    description: "Complete the project report",
-    completed: false
-  },
+  { userId: "1", id: 1, description: "Complete the project report", completed: false },
   { userId: "1", id: 2, description: "Clean the house", completed: true }
 ];
 
@@ -17,46 +12,44 @@ async function listTasks(req: NextRequest, res: NextResponse) {
   if (session == null) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
-
   return NextResponse.json(
-    tasks.filter((task) => task.userId === session.user.id)
-  );
+    tasks.filter((task) => task.userId === session.user.id));
 }
 
 async function addTask(req: NextRequest, res: NextResponse) {
-  const { description, completed = false } = await req.json();
-  const newTask = {
-    id: tasks.length + 1,
-    description,
-    completed,
-    userId: "1"
-  };
-  tasks.push(newTask);
-  return NextResponse.json(newTask, { status: 201 });
+    const { description, completed = false } = await req.json();
+    const newTask = {
+      userId: "1", // No userId for public tasks
+      id: tasks.length + 1,
+      description,
+      completed
+    };
+    tasks.push(newTask);
+    return NextResponse.json(newTask, { status: 201 });
 }
 
 async function updateTask(req: NextRequest) {
-  const { id, description, completed } = await req.json();
-  const taskIndex = tasks.findIndex((task) => task.id === id);
+    const { id, description, completed } = await req.json();
+    const taskIndex = tasks.findIndex((task) => task.id === id);
 
-  if (taskIndex !== -1) {
-    tasks[taskIndex] = { id, description, completed, userId: "1" };
-    return NextResponse.json(tasks[taskIndex]);
-  }
+    if (taskIndex !== -1) {
+      tasks[taskIndex] = { userId: "1", id, description, completed };
+      return NextResponse.json(tasks[taskIndex]);
+    }
 
-  return NextResponse.json({ message: "Task not found" }, { status: 404 });
+    return NextResponse.json({ message: "Task not found" }, { status: 404 });
 }
 
 async function deleteTask(req: NextRequest) {
-  const { id } = await req.json();
-  const taskIndex = tasks.findIndex((task) => task.id === id);
+    const { id } = await req.json();
+    const taskIndex = tasks.findIndex((task) => task.id === id);
 
-  if (taskIndex !== -1) {
-    tasks.splice(taskIndex, 1);
-    return NextResponse.json({ message: "Task deleted" });
-  }
+    if (taskIndex !== -1) {
+      tasks.splice(taskIndex, 1);
+      return NextResponse.json({ message: "Task deleted" });
+    }
 
-  return NextResponse.json({ message: "Task not found" }, { status: 404 });
+    return NextResponse.json({ message: "Task not found" }, { status: 404 });
 }
 
 // export individual handlers as REST commands
